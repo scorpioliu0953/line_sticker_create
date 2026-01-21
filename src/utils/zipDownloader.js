@@ -1,4 +1,5 @@
 import JSZip from 'jszip'
+import { resizeImage } from './imageUtils'
 
 /**
  * 將 Data URL 轉換為 Blob
@@ -31,14 +32,28 @@ export async function downloadAsZip(images, mainImage, tabImage, theme) {
 
     // 添加主要圖片
     if (mainImage) {
-      const mainBlob = dataURLtoBlob(mainImage)
-      folder.file('main.png', mainBlob)
+      try {
+        const resizedMain = await resizeImage(mainImage, 240, 240)
+        const mainBlob = dataURLtoBlob(resizedMain)
+        folder.file('main.png', mainBlob)
+      } catch (err) {
+        console.error('主要圖片縮放失敗，使用原圖', err)
+        const mainBlob = dataURLtoBlob(mainImage)
+        folder.file('main.png', mainBlob)
+      }
     }
 
     // 添加標籤圖片
     if (tabImage) {
-      const tabBlob = dataURLtoBlob(tabImage)
-      folder.file('tab.png', tabBlob)
+      try {
+        const resizedTab = await resizeImage(tabImage, 96, 74)
+        const tabBlob = dataURLtoBlob(resizedTab)
+        folder.file('tab.png', tabBlob)
+      } catch (err) {
+        console.error('標籤圖片縮放失敗，使用原圖', err)
+        const tabBlob = dataURLtoBlob(tabImage)
+        folder.file('tab.png', tabBlob)
+      }
     }
 
     // 添加貼圖圖片

@@ -451,3 +451,38 @@ export function fileToDataURL(file) {
     reader.readAsDataURL(file)
   })
 }
+
+/**
+ * 調整圖片尺寸
+ * @param {string} dataUrl - 圖片 Data URL
+ * @param {number} targetWidth - 目標寬度
+ * @param {number} targetHeight - 目標高度
+ * @returns {Promise<string>} 調整後的圖片 Data URL
+ */
+export async function resizeImage(dataUrl, targetWidth, targetHeight) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      // 如果尺寸已經符合，直接返回
+      if (img.width === targetWidth && img.height === targetHeight) {
+        resolve(dataUrl)
+        return
+      }
+      
+      const canvas = document.createElement('canvas')
+      canvas.width = targetWidth
+      canvas.height = targetHeight
+      const ctx = canvas.getContext('2d')
+      
+      // 清空畫布
+      ctx.clearRect(0, 0, targetWidth, targetHeight)
+      
+      // 繪製並縮放圖片
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
+      
+      resolve(canvas.toDataURL('image/png'))
+    }
+    img.onerror = reject
+    img.src = dataUrl
+  })
+}
