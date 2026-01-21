@@ -626,6 +626,9 @@ export async function generateGrid8Image(
 
   const prompt = `Create a single image containing 8 LINE stickers arranged in a strict 2-column by 4-row grid layout.
 
+🚫🚫🚫 CRITICAL FIRST RULE - NO GRID LINES 🚫🚫🚫
+**BEFORE YOU START DRAWING: Remember - NO lines, NO borders, NO separators between the 8 cells. The image must be ONE continuous surface.**
+
 Character Reference: **STRICTLY FOLLOW the provided character image.** The stickers MUST look exactly like the same character in different poses. Maintain the same facial features, clothing, colors, and proportions.
 Background Requirement: **High contrast solid background** (e.g., white) in each cell to facilitate automatic background removal. The background color MUST be distinct from the character and text box colors.
 Target Aspect Ratio: 9:16 (Vertical Portrait)
@@ -717,8 +720,19 @@ VERIFICATION CHECKLIST:
 ✓ **NO grid lines, borders, or dividers of any kind**
 ✓ **Cells are seamlessly connected with ZERO visible separators**
 
-FINAL INSTRUCTION:
-Generate the complete 8-grid image with STRICT adherence to cell boundaries. Each cell must be a perfect 370×320 pixel box with all content contained within. **MOST IMPORTANTLY: The image must appear as ONE CONTINUOUS SURFACE with NO lines, NO borders, NO gaps, and NO separators between the 8 cells. The cells should blend seamlessly together.**`
+FINAL INSTRUCTION - READ CAREFULLY:
+Generate the complete 8-grid image with STRICT adherence to cell boundaries. Each cell must be a perfect 370×320 pixel box with all content contained within. 
+
+🚫🚫🚫 FINAL REMINDER - ABSOLUTELY NO GRID LINES 🚫🚫🚫
+**MOST IMPORTANTLY: The image must appear as ONE CONTINUOUS SURFACE with NO lines, NO borders, NO gaps, and NO separators between the 8 cells. The cells should blend seamlessly together.**
+
+**Before finalizing your image:**
+1. Check x=370 (vertical line position) - there should be NO line there
+2. Check y=320, 640, 960 (horizontal line positions) - there should be NO lines there
+3. The entire image should look like ONE seamless surface, NOT 8 separate boxes
+4. If you see any lines between cells in your image, REMOVE them completely
+
+**The 8 cells must touch each other directly with ZERO visible separators. Think of it as painting on ONE canvas, not drawing 8 separate boxes.**`
 
   try {
     if (!characterImageDataUrl) {

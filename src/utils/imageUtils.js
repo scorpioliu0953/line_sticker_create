@@ -116,70 +116,96 @@ export async function removeGridLines(gridImageDataUrl, cellWidth = 370, cellHei
         cellHeight * 3  // 960 (第3-4行之間)
       ]
       
-      // 檢測並移除垂直線（在 x=370 附近，範圍 ±2 像素）
-      const verticalLineWidth = 5 // 檢測範圍：x=368 到 x=372
-      for (let y = 0; y < height; y++) {
-        for (let offset = -Math.floor(verticalLineWidth / 2); offset <= Math.floor(verticalLineWidth / 2); offset++) {
-          const x = verticalLineX + offset
-          if (x >= 0 && x < width) {
-            const idx = (y * width + x) * 4
-            
-            // 檢查是否可能是線條（顏色與相鄰像素差異大）
-            const leftX = Math.max(0, x - 3)
-            const rightX = Math.min(width - 1, x + 3)
-            const leftIdx = (y * width + leftX) * 4
-            const rightIdx = (y * width + rightX) * 4
-            
-            const leftAvg = (data[leftIdx] + data[leftIdx + 1] + data[leftIdx + 2]) / 3
-            const rightAvg = (data[rightIdx] + data[rightIdx + 1] + data[rightIdx + 2]) / 3
-            const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
-            
-            // 如果當前像素與左右差異大，可能是線條，用左右平均值替換
-            if (Math.abs(currentAvg - leftAvg) > 30 || Math.abs(currentAvg - rightAvg) > 30) {
-              // 使用左右像素的平均值
-              const avgR = (data[leftIdx] + data[rightIdx]) / 2
-              const avgG = (data[leftIdx + 1] + data[rightIdx + 1]) / 2
-              const avgB = (data[leftIdx + 2] + data[rightIdx + 2]) / 2
+      // 處理兩次以確保完全移除間隔線
+      for (let pass = 0; pass < 2; pass++) {
+        // 檢測並移除垂直線（在 x=370 附近，擴大檢測範圍）
+        const verticalLineWidth = 11 // 擴大檢測範圍：x=365 到 x=375 (±5 像素)
+        for (let y = 0; y < height; y++) {
+          for (let offset = -Math.floor(verticalLineWidth / 2); offset <= Math.floor(verticalLineWidth / 2); offset++) {
+            const x = verticalLineX + offset
+            if (x >= 0 && x < width) {
+              const idx = (y * width + x) * 4
               
-              data[idx] = avgR
-              data[idx + 1] = avgG
-              data[idx + 2] = avgB
+              // 檢查是否可能是線條（降低閾值，更容易檢測）
+              const leftX = Math.max(0, x - 5)
+              const rightX = Math.min(width - 1, x + 5)
+              const leftIdx = (y * width + leftX) * 4
+              const rightIdx = (y * width + rightX) * 4
+              
+              const leftAvg = (data[leftIdx] + data[leftIdx + 1] + data[leftIdx + 2]) / 3
+              const rightAvg = (data[rightIdx] + data[rightIdx + 1] + data[rightIdx + 2]) / 3
+              const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
+              
+              // 降低閾值從 30 到 15，更容易檢測到線條
+              // 如果當前像素與左右差異大，可能是線條
+              if (Math.abs(currentAvg - leftAvg) > 15 || Math.abs(currentAvg - rightAvg) > 15) {
+                // 使用左右像素的加權平均值，距離越近權重越大
+                const leftDist = Math.abs(x - leftX)
+                const rightDist = Math.abs(x - rightX)
+                const totalDist = leftDist + rightDist
+                const leftWeight = totalDist > 0 ? rightDist / totalDist : 0.5
+                const rightWeight = totalDist > 0 ? leftDist / totalDist : 0.5
+                
+                const avgR = data[leftIdx] * leftWeight + data[rightIdx] * rightWeight
+                const avgG = data[leftIdx + 1] * leftWeight + data[rightIdx + 1] * rightWeight
+                const avgB = data[leftIdx + 2] * leftWeight + data[rightIdx + 2] * rightWeight
+                
+                data[idx] = Math.round(avgR)
+                data[idx + 1] = Math.round(avgG)
+                data[idx + 2] = Math.round(avgB)
+              }
             }
           }
         }
-      }
-      
-      // 檢測並移除水平線（在 y=320, 640, 960 附近）
-      const horizontalLineHeight = 5 // 檢測範圍：±2 像素
-      for (const lineY of horizontalLinesY) {
-        for (let offset = -Math.floor(horizontalLineHeight / 2); offset <= Math.floor(horizontalLineHeight / 2); offset++) {
-          const y = lineY + offset
-          if (y >= 0 && y < height) {
-            for (let x = 0; x < width; x++) {
-              const idx = (y * width + x) * 4
-              
-              // 檢查是否可能是線條
-              const topY = Math.max(0, y - 3)
-              const bottomY = Math.min(height - 1, y + 3)
-              const topIdx = (topY * width + x) * 4
-              const bottomIdx = (bottomY * width + x) * 4
-              
-              const topAvg = (data[topIdx] + data[topIdx + 1] + data[topIdx + 2]) / 3
-              const bottomAvg = (data[bottomIdx] + data[bottomIdx + 1] + data[bottomIdx + 2]) / 3
-              const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
-              
-              // 如果當前像素與上下差異大，可能是線條，用上下平均值替換
-              if (Math.abs(currentAvg - topAvg) > 30 || Math.abs(currentAvg - bottomAvg) > 30) {
-                // 使用上下像素的平均值
-                const avgR = (data[topIdx] + data[bottomIdx]) / 2
-                const avgG = (data[topIdx + 1] + data[bottomIdx + 1]) / 2
-                const avgB = (data[topIdx + 2] + data[bottomIdx + 2]) / 2
+        
+        // 檢測並移除水平線（在 y=320, 640, 960 附近，擴大檢測範圍）
+        const horizontalLineHeight = 11 // 擴大檢測範圍：±5 像素
+        for (const lineY of horizontalLinesY) {
+          for (let offset = -Math.floor(horizontalLineHeight / 2); offset <= Math.floor(horizontalLineHeight / 2); offset++) {
+            const y = lineY + offset
+            if (y >= 0 && y < height) {
+              for (let x = 0; x < width; x++) {
+                const idx = (y * width + x) * 4
                 
-                data[idx] = avgR
-                data[idx + 1] = avgG
-                data[idx + 2] = avgB
+                // 檢查是否可能是線條
+                const topY = Math.max(0, y - 5)
+                const bottomY = Math.min(height - 1, y + 5)
+                const topIdx = (topY * width + x) * 4
+                const bottomIdx = (bottomY * width + x) * 4
+                
+                const topAvg = (data[topIdx] + data[topIdx + 1] + data[topIdx + 2]) / 3
+                const bottomAvg = (data[bottomIdx] + data[bottomIdx + 1] + data[bottomIdx + 2]) / 3
+                const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
+                
+                // 降低閾值從 30 到 15，更容易檢測到線條
+                if (Math.abs(currentAvg - topAvg) > 15 || Math.abs(currentAvg - bottomAvg) > 15) {
+                  // 使用上下像素的加權平均值
+                  const topDist = Math.abs(y - topY)
+                  const bottomDist = Math.abs(y - bottomY)
+                  const totalDist = topDist + bottomDist
+                  const topWeight = totalDist > 0 ? bottomDist / totalDist : 0.5
+                  const bottomWeight = totalDist > 0 ? topDist / totalDist : 0.5
+                  
+                  const avgR = data[topIdx] * topWeight + data[bottomIdx] * bottomWeight
+                  const avgG = data[topIdx + 1] * topWeight + data[bottomIdx + 1] * bottomWeight
+                  const avgB = data[topIdx + 2] * topWeight + data[bottomIdx + 2] * bottomWeight
+                  
+                  data[idx] = Math.round(avgR)
+                  data[idx + 1] = Math.round(avgG)
+                  data[idx + 2] = Math.round(avgB)
+                }
               }
             }
+          }
+        }
+        
+        // 更新 imageData 以便第二次處理
+        if (pass === 0) {
+          ctx.putImageData(imageData, 0, 0)
+          const newImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          // 更新 data 引用
+          for (let i = 0; i < data.length; i++) {
+            data[i] = newImageData.data[i]
           }
         }
       }
