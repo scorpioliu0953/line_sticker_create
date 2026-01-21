@@ -169,7 +169,14 @@ function App() {
       setProgress('文字描述生成完成，可以編輯後繼續')
     } catch (error) {
       console.error('生成描述失敗:', error)
-      alert(`生成描述失敗: ${error.message}`)
+      const errorMessage = error.message || error.toString() || '未知錯誤'
+      
+      // 檢查是否為 overloaded 錯誤
+      if (errorMessage.includes('overloaded') || errorMessage.includes('overload') || errorMessage.includes('503')) {
+        alert(`生成描述失敗：API 服務器過載\n\n錯誤信息：${errorMessage}\n\n建議：\n1. 等待幾秒後再試\n2. 如果持續失敗，可能是 API 服務器負載過高，請稍後再試`)
+      } else {
+        alert(`生成描述失敗: ${errorMessage}`)
+      }
       setProgress('')
     } finally {
       setGeneratingDescriptions(false)

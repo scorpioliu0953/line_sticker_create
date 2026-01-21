@@ -26,9 +26,38 @@ export async function generateTextStyle(apiKey, theme, characterDescription) {
 
 請用 1-3 句話簡潔描述，直接輸出描述文字，不要其他說明。`
 
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    return response.text().trim()
+    // 添加重試機制
+    let result = null
+    let response = null
+    let retryCount = 0
+    const maxRetries = 3
+    
+    while (retryCount < maxRetries) {
+      try {
+        result = await model.generateContent(prompt)
+        response = await result.response
+        return response.text().trim()
+      } catch (error) {
+        retryCount++
+        const errorMessage = error.message || error.toString() || ''
+        const isOverloaded = errorMessage.includes('overloaded') || 
+                            errorMessage.includes('overload') ||
+                            errorMessage.includes('503')
+        
+        if (retryCount < maxRetries) {
+          const baseDelay = isOverloaded ? 10000 : 5000
+          const delay = baseDelay * Math.pow(2, retryCount - 1)
+          console.warn(`生成文字風格失敗，重試中 (${retryCount}/${maxRetries})...`, errorMessage)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        } else {
+          console.error('生成文字風格失敗，已重試', maxRetries, '次:', error)
+          // 如果重試失敗，返回預設值
+          return '可愛簡潔的風格，文字清晰易讀'
+        }
+      }
+    }
+    
+    return '可愛簡潔的風格，文字清晰易讀'
   } catch (error) {
     console.error('生成文字風格失敗:', error)
     return '可愛簡潔的風格，文字清晰易讀'
@@ -93,9 +122,45 @@ ${excludedTextsPrompt}
 
 直接輸出 JSON 陣列，不要其他說明文字。`
 
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text()
+    // 添加重試機制
+    let result = null
+    let response = null
+    let text = null
+    let retryCount = 0
+    const maxRetries = 5
+    
+    while (retryCount < maxRetries && !text) {
+      try {
+        result = await model.generateContent(prompt)
+        response = await result.response
+        text = response.text()
+        break // 成功，跳出循環
+      } catch (error) {
+        retryCount++
+        const errorMessage = error.message || error.toString() || ''
+        const isOverloaded = errorMessage.includes('overloaded') || 
+                            errorMessage.includes('overload') ||
+                            errorMessage.includes('503') ||
+                            errorMessage.includes('請稍後再試')
+        
+        if (retryCount < maxRetries) {
+          // 使用指數退避策略
+          const baseDelay = isOverloaded ? 10000 : 5000
+          const delay = baseDelay * Math.pow(2, retryCount - 1)
+          
+          console.warn(`生成文字描述失敗，重試中 (${retryCount}/${maxRetries})...`, errorMessage)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        } else {
+          // 最後一次重試失敗，拋出錯誤
+          console.error(`生成文字描述失敗，已重試 ${maxRetries} 次:`, error)
+          throw new Error(`生成圖片描述失敗（已重試 ${maxRetries} 次）: ${errorMessage}`)
+        }
+      }
+    }
+    
+    if (!text) {
+      throw new Error('生成文字描述失敗：無法獲取回應')
+    }
 
     // 嘗試解析 JSON
     let items = []
@@ -168,9 +233,40 @@ ${excludedTextsSection}
 以 JSON 格式輸出：[{"description": "描述", "text": "文字"}, ...]`
       
       try {
-        const additionalResult = await model.generateContent(additionalPrompt)
-        const additionalResponse = await additionalResult.response
-        const additionalText = additionalResponse.text()
+        // 補充生成也添加重試機制
+        let additionalResult = null
+        let additionalResponse = null
+        let additionalText = null
+        let additionalRetryCount = 0
+        const additionalMaxRetries = 3
+        
+        while (additionalRetryCount < additionalMaxRetries && !additionalText) {
+          try {
+            additionalResult = await model.generateContent(additionalPrompt)
+            additionalResponse = await additionalResult.response
+            additionalText = additionalResponse.text()
+            break
+          } catch (e) {
+            additionalRetryCount++
+            const errorMessage = e.message || e.toString() || ''
+            const isOverloaded = errorMessage.includes('overloaded') || 
+                                errorMessage.includes('overload') ||
+                                errorMessage.includes('503')
+            
+            if (additionalRetryCount < additionalMaxRetries) {
+              const baseDelay = isOverloaded ? 10000 : 5000
+              const delay = baseDelay * Math.pow(2, additionalRetryCount - 1)
+              console.warn(`補充生成失敗，重試中 (${additionalRetryCount}/${additionalMaxRetries})...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
+            } else {
+              throw e
+            }
+          }
+        }
+        
+        if (!additionalText) {
+          throw new Error('補充生成失敗：無法獲取回應')
+        }
         
         const additionalJsonMatch = additionalText.match(/\[[\s\S]*\]/)
         if (additionalJsonMatch) {
