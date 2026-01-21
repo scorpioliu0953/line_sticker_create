@@ -1,6 +1,6 @@
-# LINE 動態貼圖製作工具
+# LINE 貼圖製作工具
 
-一個使用 React 開發的 LINE 動態貼圖自動生成工具，整合 Gemini API 進行智能圖片生成和處理。
+一個使用 React 開發的 LINE 貼圖自動生成工具，整合 Gemini API 進行智能圖片生成和處理。
 
 ## 功能特色
 
