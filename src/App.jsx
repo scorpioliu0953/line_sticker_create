@@ -723,20 +723,31 @@ function App() {
                       position: 'relative'
                     }}
                   >
-                    <img 
-                      src={img} 
-                      alt={`去背後 8宮格 ${idx + 1}`} 
-                      className="preview-image grid-image"
+                    <div
                       style={{
-                        backgroundColor: previewBackgroundDark ? '#1a1a1a' : 'transparent',
+                        backgroundColor: previewBackgroundDark ? '#1a1a1a' : '#ffffff',
                         border: previewBackgroundDark ? '1px solid #444' : '2px solid #e0e0e0',
+                        borderRadius: '4px',
+                        padding: '0',
+                        display: 'inline-block',
                         transition: 'all 0.3s ease',
-                        maxWidth: '100%',
-                        height: 'auto',
-                        display: 'block'
+                        overflow: 'hidden'
                       }}
-                    />
-                    <p style={{ marginTop: '8px', fontSize: '0.85em', color: '#6c757d', textAlign: 'center' }}>
+                    >
+                      <img 
+                        src={img} 
+                        alt={`去背後 8宮格 ${idx + 1}`} 
+                        className="preview-image grid-image"
+                        style={{
+                          backgroundColor: previewBackgroundDark ? '#1a1a1a' : 'transparent',
+                          display: 'block',
+                          maxWidth: '100%',
+                          height: 'auto',
+                          mixBlendMode: previewBackgroundDark ? 'normal' : 'normal'
+                        }}
+                      />
+                    </div>
+                    <p style={{ marginTop: '8px', fontSize: '0.85em', color: previewBackgroundDark ? '#999' : '#6c757d', textAlign: 'center' }}>
                       8宮格 {idx + 1}
                     </p>
                   </div>
