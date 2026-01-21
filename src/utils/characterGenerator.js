@@ -635,11 +635,21 @@ Text Style Guidelines: ${safeTextStyle}
 The image must be EXACTLY 740 pixels wide × 1280 pixels high.
 Calculation: 370px × 2 columns = 740px width, 320px × 4 rows = 1280px height.
 
-⚠️⚠️⚠️ NO GRID LINES OR GAPS - MANDATORY ⚠️⚠️⚠️
-**DO NOT draw any grid lines, borders, or gaps between cells.**
-**The 8 cells must be seamlessly connected with NO visible separators.**
-**The entire image should appear as one continuous surface with 8 distinct sticker areas.**
-**NO lines, NO borders, NO gaps, NO dividers between cells.**
+🚫🚫🚫 ABSOLUTELY FORBIDDEN - NO GRID LINES, NO SEPARATORS, NO GAPS 🚫🚫🚫
+**CRITICAL: DO NOT DRAW ANY LINES, BORDERS, DIVIDERS, OR SEPARATORS BETWEEN CELLS.**
+**FORBIDDEN ELEMENTS:**
+- ❌ NO vertical lines between columns
+- ❌ NO horizontal lines between rows
+- ❌ NO cross lines (十字線)
+- ❌ NO grid lines of any kind
+- ❌ NO borders around cells
+- ❌ NO gaps or spaces between cells
+- ❌ NO visible separators
+- ❌ NO dividing lines
+**The 8 cells must be SEAMLESSLY CONNECTED with ZERO visible separators.**
+**The entire image must appear as ONE CONTINUOUS SURFACE with 8 distinct sticker areas.**
+**Cells should touch each other DIRECTLY with NO lines, NO borders, NO gaps, NO dividers.**
+**Think of it as ONE single image divided into 8 areas by content only, NOT by lines.**
 
 ⚠️⚠️⚠️ CELL BOUNDARY REQUIREMENT - STRICT - MANDATORY ⚠️⚠️⚠️
 Each cell is EXACTLY 370 pixels wide × 320 pixels high.
@@ -681,8 +691,10 @@ Layout Rules:
 - Maintain character consistency across all 8 cells
 - Each cell should be a complete, self-contained sticker design
 - Safe, family-friendly content
-- **NO grid lines, borders, or gaps between cells - seamless connection**
-- **Cells should touch each other directly with no visible separators**
+- **ABSOLUTELY NO grid lines, borders, dividers, or gaps between cells - seamless connection**
+- **Cells must touch each other directly with ZERO visible separators**
+- **NO cross lines (十字線), NO vertical lines, NO horizontal lines**
+- **The image should look like ONE continuous surface, NOT 8 separate boxes with lines**
 
 VERIFICATION CHECKLIST:
 ✓ Image is exactly 740×1280 pixels
@@ -696,8 +708,14 @@ VERIFICATION CHECKLIST:
 ✓ All content in Cell 7 is within x=0-369, y=960-1279
 ✓ All content in Cell 8 is within x=370-739, y=960-1279
 ✓ No content extends beyond cell boundaries
+✓ **NO vertical lines between columns (x=370)**
+✓ **NO horizontal lines between rows (y=320, 640, 960)**
+✓ **NO cross lines (十字線) anywhere in the image**
+✓ **NO grid lines, borders, or dividers of any kind**
+✓ **Cells are seamlessly connected with ZERO visible separators**
 
-Generate the complete 8-grid image with STRICT adherence to cell boundaries. Each cell must be a perfect 370×320 pixel box with all content contained within.`
+FINAL INSTRUCTION:
+Generate the complete 8-grid image with STRICT adherence to cell boundaries. Each cell must be a perfect 370×320 pixel box with all content contained within. **MOST IMPORTANTLY: The image must appear as ONE CONTINUOUS SURFACE with NO lines, NO borders, NO gaps, and NO separators between the 8 cells. The cells should blend seamlessly together.**`
 
   try {
     if (!characterImageDataUrl) {
