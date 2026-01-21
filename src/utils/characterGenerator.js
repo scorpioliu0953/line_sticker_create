@@ -637,19 +637,22 @@ Calculation: 370px × 2 columns = 740px width, 320px × 4 rows = 1280px height.
 
 🚫🚫🚫 ABSOLUTELY FORBIDDEN - NO GRID LINES, NO SEPARATORS, NO GAPS 🚫🚫🚫
 **CRITICAL: DO NOT DRAW ANY LINES, BORDERS, DIVIDERS, OR SEPARATORS BETWEEN CELLS.**
-**FORBIDDEN ELEMENTS:**
-- ❌ NO vertical lines between columns
-- ❌ NO horizontal lines between rows
-- ❌ NO cross lines (十字線)
-- ❌ NO grid lines of any kind
-- ❌ NO borders around cells
+**FORBIDDEN ELEMENTS - ABSOLUTE PROHIBITION:**
+- ❌ NO vertical lines between columns (especially at x=370)
+- ❌ NO horizontal lines between rows (especially at y=320, 640, 960)
+- ❌ NO cross lines (十字線) or intersection lines
+- ❌ NO grid lines of any kind, thickness, or color
+- ❌ NO borders around cells or around the entire grid
 - ❌ NO gaps or spaces between cells
-- ❌ NO visible separators
-- ❌ NO dividing lines
+- ❌ NO visible separators, dividers, or boundaries
+- ❌ NO dividing lines, even if they are subtle or faint
+- ❌ NO dark lines, light lines, or any colored lines between cells
+- ❌ NO shadows or outlines that create visual separation
 **The 8 cells must be SEAMLESSLY CONNECTED with ZERO visible separators.**
 **The entire image must appear as ONE CONTINUOUS SURFACE with 8 distinct sticker areas.**
 **Cells should touch each other DIRECTLY with NO lines, NO borders, NO gaps, NO dividers.**
 **Think of it as ONE single image divided into 8 areas by content only, NOT by lines.**
+**IMPORTANT: Even if you think a line would help organize the layout, DO NOT draw it. The cells must blend seamlessly.**
 
 ⚠️⚠️⚠️ CELL BOUNDARY REQUIREMENT - STRICT - MANDATORY ⚠️⚠️⚠️
 Each cell is EXACTLY 370 pixels wide × 320 pixels high.
