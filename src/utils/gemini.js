@@ -26,29 +26,63 @@ export async function generateTextStyle(apiKey, theme, characterDescription) {
 
 請用 1-3 句話簡潔描述，直接輸出描述文字，不要其他說明。`
 
-    // 添加重試機制
+    // 添加重試機制，包含超時處理
     let result = null
     let response = null
+    let text = null
     let retryCount = 0
     const maxRetries = 3
+    const timeoutMs = 60000 // 60秒超時
     
-    while (retryCount < maxRetries) {
+    while (retryCount < maxRetries && !text) {
       try {
-        result = await model.generateContent(prompt)
-        response = await result.response
-        return response.text().trim()
+        // 添加超時控制
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('請求超時（超過60秒）')), timeoutMs)
+        })
+        
+        const generatePromise = (async () => {
+          result = await model.generateContent(prompt)
+          response = await result.response
+          
+          if (!response) {
+            throw new Error('API 回應為空')
+          }
+          
+          try {
+            text = response.text()
+          } catch (textError) {
+            console.error('獲取回應文字失敗:', textError)
+            throw new Error(`無法解析 API 回應: ${textError.message || textError}`)
+          }
+          
+          if (!text || text.trim().length === 0) {
+            throw new Error('API 回應文字為空')
+          }
+          
+          return text.trim()
+        })()
+        
+        text = await Promise.race([generatePromise, timeoutPromise])
+        break // 成功，跳出循環
       } catch (error) {
         retryCount++
         const errorMessage = error.message || error.toString() || ''
         const isOverloaded = errorMessage.includes('overloaded') || 
                             errorMessage.includes('overload') ||
-                            errorMessage.includes('503')
+                            errorMessage.includes('503') ||
+                            errorMessage.includes('timeout') ||
+                            errorMessage.includes('超時')
+        
+        console.warn(`生成文字風格失敗 (嘗試 ${retryCount}/${maxRetries}):`, errorMessage)
         
         if (retryCount < maxRetries) {
           const baseDelay = isOverloaded ? 10000 : 5000
           const delay = baseDelay * Math.pow(2, retryCount - 1)
-          console.warn(`生成文字風格失敗，重試中 (${retryCount}/${maxRetries})...`, errorMessage)
-          await new Promise(resolve => setTimeout(resolve, delay))
+          const maxDelay = 60000
+          const finalDelay = Math.min(delay, maxDelay)
+          console.warn(`等待 ${Math.round(finalDelay / 1000)} 秒後重試...`)
+          await new Promise(resolve => setTimeout(resolve, finalDelay))
         } else {
           console.error('生成文字風格失敗，已重試', maxRetries, '次:', error)
           // 如果重試失敗，返回預設值
@@ -57,7 +91,13 @@ export async function generateTextStyle(apiKey, theme, characterDescription) {
       }
     }
     
-    return '可愛簡潔的風格，文字清晰易讀'
+    // 如果最終還是沒有獲取到文字，返回預設值
+    if (!text || text.trim().length === 0) {
+      console.warn('生成文字風格失敗：無法獲取有效回應，使用預設值')
+      return '可愛簡潔的風格，文字清晰易讀'
+    }
+    
+    return text
   } catch (error) {
     console.error('生成文字風格失敗:', error)
     return '可愛簡潔的風格，文字清晰易讀'
@@ -122,18 +162,45 @@ ${excludedTextsPrompt}
 
 直接輸出 JSON 陣列，不要其他說明文字。`
 
-    // 添加重試機制
+    // 添加重試機制，包含超時處理
     let result = null
     let response = null
     let text = null
     let retryCount = 0
     const maxRetries = 5
+    const timeoutMs = 120000 // 120秒超時
     
     while (retryCount < maxRetries && !text) {
       try {
-        result = await model.generateContent(prompt)
-        response = await result.response
-        text = response.text()
+        // 添加超時控制
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('請求超時（超過120秒）')), timeoutMs)
+        })
+        
+        const generatePromise = (async () => {
+          result = await model.generateContent(prompt)
+          response = await result.response
+          
+          // 檢查 response 是否存在
+          if (!response) {
+            throw new Error('API 回應為空')
+          }
+          
+          // 嘗試獲取文字，可能拋出異常
+          try {
+            text = response.text()
+          } catch (textError) {
+            console.error('獲取回應文字失敗:', textError)
+            throw new Error(`無法解析 API 回應: ${textError.message || textError}`)
+          }
+          
+          // 檢查 text 是否為空
+          if (!text || text.trim().length === 0) {
+            throw new Error('API 回應文字為空')
+          }
+        })()
+        
+        await Promise.race([generatePromise, timeoutPromise])
         break // 成功，跳出循環
       } catch (error) {
         retryCount++
@@ -141,25 +208,36 @@ ${excludedTextsPrompt}
         const isOverloaded = errorMessage.includes('overloaded') || 
                             errorMessage.includes('overload') ||
                             errorMessage.includes('503') ||
-                            errorMessage.includes('請稍後再試')
+                            errorMessage.includes('請稍後再試') ||
+                            errorMessage.includes('timeout') ||
+                            errorMessage.includes('超時')
+        
+        console.warn(`生成文字描述失敗 (嘗試 ${retryCount}/${maxRetries}):`, errorMessage)
+        console.warn('完整錯誤:', error)
         
         if (retryCount < maxRetries) {
           // 使用指數退避策略
-          const baseDelay = isOverloaded ? 10000 : 5000
+          const baseDelay = isOverloaded ? 15000 : 8000 // 增加基礎延遲
           const delay = baseDelay * Math.pow(2, retryCount - 1)
+          const maxDelay = 120000 // 最大延遲 120 秒
+          const finalDelay = Math.min(delay, maxDelay)
           
-          console.warn(`生成文字描述失敗，重試中 (${retryCount}/${maxRetries})...`, errorMessage)
-          await new Promise(resolve => setTimeout(resolve, delay))
+          console.warn(`等待 ${Math.round(finalDelay / 1000)} 秒後重試...`)
+          await new Promise(resolve => setTimeout(resolve, finalDelay))
         } else {
           // 最後一次重試失敗，拋出錯誤
-          console.error(`生成文字描述失敗，已重試 ${maxRetries} 次:`, error)
+          console.error(`生成文字描述失敗，已重試 ${maxRetries} 次`)
+          console.error('最後一次錯誤:', error)
           throw new Error(`生成圖片描述失敗（已重試 ${maxRetries} 次）: ${errorMessage}`)
         }
       }
     }
     
-    if (!text) {
-      throw new Error('生成文字描述失敗：無法獲取回應')
+    if (!text || text.trim().length === 0) {
+      console.error('最終檢查：text 為空或無效')
+      console.error('result:', result)
+      console.error('response:', response)
+      throw new Error('生成文字描述失敗：無法獲取有效回應（API 可能過載或回應格式異常）')
     }
 
     // 嘗試解析 JSON
@@ -240,32 +318,66 @@ ${excludedTextsSection}
         let additionalRetryCount = 0
         const additionalMaxRetries = 3
         
+        const additionalTimeoutMs = 60000 // 60秒超時
+        
         while (additionalRetryCount < additionalMaxRetries && !additionalText) {
           try {
-            additionalResult = await model.generateContent(additionalPrompt)
-            additionalResponse = await additionalResult.response
-            additionalText = additionalResponse.text()
+            // 添加超時控制
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('補充生成請求超時（超過60秒）')), additionalTimeoutMs)
+            })
+            
+            const generatePromise = (async () => {
+              additionalResult = await model.generateContent(additionalPrompt)
+              additionalResponse = await additionalResult.response
+              
+              if (!additionalResponse) {
+                throw new Error('補充生成 API 回應為空')
+              }
+              
+              try {
+                additionalText = additionalResponse.text()
+              } catch (textError) {
+                console.error('獲取補充生成回應文字失敗:', textError)
+                throw new Error(`無法解析補充生成 API 回應: ${textError.message || textError}`)
+              }
+              
+              if (!additionalText || additionalText.trim().length === 0) {
+                throw new Error('補充生成 API 回應文字為空')
+              }
+            })()
+            
+            await Promise.race([generatePromise, timeoutPromise])
             break
           } catch (e) {
             additionalRetryCount++
             const errorMessage = e.message || e.toString() || ''
             const isOverloaded = errorMessage.includes('overloaded') || 
                                 errorMessage.includes('overload') ||
-                                errorMessage.includes('503')
+                                errorMessage.includes('503') ||
+                                errorMessage.includes('timeout') ||
+                                errorMessage.includes('超時')
+            
+            console.warn(`補充生成失敗 (嘗試 ${additionalRetryCount}/${additionalMaxRetries}):`, errorMessage)
             
             if (additionalRetryCount < additionalMaxRetries) {
               const baseDelay = isOverloaded ? 10000 : 5000
               const delay = baseDelay * Math.pow(2, additionalRetryCount - 1)
-              console.warn(`補充生成失敗，重試中 (${additionalRetryCount}/${additionalMaxRetries})...`)
-              await new Promise(resolve => setTimeout(resolve, delay))
+              const maxDelay = 60000
+              const finalDelay = Math.min(delay, maxDelay)
+              console.warn(`等待 ${Math.round(finalDelay / 1000)} 秒後重試補充生成...`)
+              await new Promise(resolve => setTimeout(resolve, finalDelay))
             } else {
-              throw e
+              console.warn('補充生成失敗，已重試', additionalMaxRetries, '次，跳過補充生成')
+              // 不拋出錯誤，只是跳過補充生成
+              break
             }
           }
         }
         
-        if (!additionalText) {
-          throw new Error('補充生成失敗：無法獲取回應')
+        if (!additionalText || additionalText.trim().length === 0) {
+          console.warn('補充生成失敗：無法獲取有效回應，跳過補充生成')
+          // 不拋出錯誤，繼續使用已生成的項目
         }
         
         const additionalJsonMatch = additionalText.match(/\[[\s\S]*\]/)
