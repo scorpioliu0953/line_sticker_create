@@ -116,6 +116,27 @@ export async function removeGridLines(gridImageDataUrl, cellWidth = 370, cellHei
         cellHeight * 3  // 960 (第3-4行之間)
       ]
       
+      // 獲取背景色估計值（取四個角落的平均值）
+      // 假設背景是純色且佔據角落
+      const corners = [
+        0, 
+        (width - 1) * 4, 
+        ((height - 1) * width) * 4, 
+        (height * width - 1) * 4
+      ];
+      let bgR = 0, bgG = 0, bgB = 0;
+      corners.forEach(idx => {
+        bgR += data[idx];
+        bgG += data[idx + 1];
+        bgB += data[idx + 2];
+      });
+      bgR = Math.round(bgR / 4);
+      bgG = Math.round(bgG / 4);
+      bgB = Math.round(bgB / 4);
+      
+      // 判斷是否為淺色背景（通常是白色）
+      const isLightBg = (bgR + bgG + bgB) / 3 > 200;
+
       // 處理兩次以確保完全移除間隔線
       for (let pass = 0; pass < 2; pass++) {
         // 檢測並移除垂直線（在 x=370 附近，擴大檢測範圍）
@@ -126,20 +147,34 @@ export async function removeGridLines(gridImageDataUrl, cellWidth = 370, cellHei
             if (x >= 0 && x < width) {
               const idx = (y * width + x) * 4
               
-              // 檢查是否可能是線條（降低閾值，更容易檢測）
+              // 策略 1: 激進去除明顯的深色線條（僅在淺色背景下且位於中心區域）
+              if (isLightBg && Math.abs(offset) <= 3) {
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
+                // 如果像素明顯比背景暗（例如黑色線條）
+                if ((r + g + b) / 3 < 200) {
+                   // 強制替換為背景色
+                   data[idx] = bgR;
+                   data[idx + 1] = bgG;
+                   data[idx + 2] = bgB;
+                   continue; // 已處理，跳過後續邏輯
+                }
+              }
+
+              // 策略 2: 檢查並平滑邊緣（原有的邏輯，針對顏色差異）
               const leftX = Math.max(0, x - 5)
               const rightX = Math.min(width - 1, x + 5)
               const leftIdx = (y * width + leftX) * 4
               const rightIdx = (y * width + rightX) * 4
               
+              const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
               const leftAvg = (data[leftIdx] + data[leftIdx + 1] + data[leftIdx + 2]) / 3
               const rightAvg = (data[rightIdx] + data[rightIdx + 1] + data[rightIdx + 2]) / 3
-              const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
               
-              // 降低閾值從 30 到 15，更容易檢測到線條
-              // 如果當前像素與左右差異大，可能是線條
+              // 如果當前像素與左右差異大
               if (Math.abs(currentAvg - leftAvg) > 15 || Math.abs(currentAvg - rightAvg) > 15) {
-                // 使用左右像素的加權平均值，距離越近權重越大
+                // 使用左右像素的加權平均值
                 const leftDist = Math.abs(x - leftX)
                 const rightDist = Math.abs(x - rightX)
                 const totalDist = leftDist + rightDist
@@ -167,19 +202,30 @@ export async function removeGridLines(gridImageDataUrl, cellWidth = 370, cellHei
               for (let x = 0; x < width; x++) {
                 const idx = (y * width + x) * 4
                 
-                // 檢查是否可能是線條
+                // 策略 1: 激進去除明顯的深色線條（僅在淺色背景下且位於中心區域）
+                if (isLightBg && Math.abs(offset) <= 3) {
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    if ((r + g + b) / 3 < 200) {
+                       data[idx] = bgR;
+                       data[idx + 1] = bgG;
+                       data[idx + 2] = bgB;
+                       continue;
+                    }
+                }
+
+                // 策略 2: 平滑處理
                 const topY = Math.max(0, y - 5)
                 const bottomY = Math.min(height - 1, y + 5)
                 const topIdx = (topY * width + x) * 4
                 const bottomIdx = (bottomY * width + x) * 4
                 
+                const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
                 const topAvg = (data[topIdx] + data[topIdx + 1] + data[topIdx + 2]) / 3
                 const bottomAvg = (data[bottomIdx] + data[bottomIdx + 1] + data[bottomIdx + 2]) / 3
-                const currentAvg = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
                 
-                // 降低閾值從 30 到 15，更容易檢測到線條
                 if (Math.abs(currentAvg - topAvg) > 15 || Math.abs(currentAvg - bottomAvg) > 15) {
-                  // 使用上下像素的加權平均值
                   const topDist = Math.abs(y - topY)
                   const bottomDist = Math.abs(y - bottomY)
                   const totalDist = topDist + bottomDist

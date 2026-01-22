@@ -672,115 +672,56 @@ export async function generateGrid8Image(
     return `位置 ${row}-${col} (第${index + 1}個): ${sticker.description}, 文字: "${sticker.text}"`
   }).join('\n')
 
-  const prompt = `Create a single image containing 8 LINE stickers arranged in a strict 2-column by 4-row grid layout.
-
-🚫🚫🚫 CRITICAL FIRST RULE - NO GRID LINES 🚫🚫🚫
-**BEFORE YOU START DRAWING: Remember - NO lines, NO borders, NO separators between the 8 cells. The image must be ONE continuous surface.**
+  const prompt = `Create a single image containing 8 LINE stickers arranged in a 2-column by 4-row layout on a CLEAN WHITE CANVAS.
+  
+🚫🚫🚫 CRITICAL INSTRUCTION - INVISIBLE BOUNDARIES 🚫🚫🚫
+**DO NOT DRAW ANY GRID LINES, BORDERS, OR FRAMES.**
+The 8 stickers must float on a single, continuous white background.
+Imagine 8 stickers placed on a white sheet of paper. NO lines between them.
 
 Character Reference: **STRICTLY FOLLOW the provided character image.** The stickers MUST look exactly like the same character in different poses. Maintain the same facial features, clothing, colors, and proportions.
-Background Requirement: **High contrast solid background** (e.g., white) in each cell to facilitate automatic background removal. The background color MUST be distinct from the character and text box colors.
+Background Requirement: **High contrast solid white background** in each area to facilitate automatic background removal.
 Target Aspect Ratio: 9:16 (Vertical Portrait)
 Text Style Guidelines: ${safeTextStyle}
 
-⚠️⚠️⚠️ ABSOLUTE SIZE REQUIREMENT - CRITICAL - NO EXCEPTIONS ⚠️⚠️⚠️
+⚠️⚠️⚠️ ABSOLUTE SIZE REQUIREMENT - CRITICAL ⚠️⚠️⚠️
 The image must be EXACTLY 740 pixels wide × 1280 pixels high.
-Calculation: 370px × 2 columns = 740px width, 320px × 4 rows = 1280px height.
+Virtual Cell Size: 370px × 320px (for positioning only - DO NOT DRAW OUTLINES).
 
-🚫🚫🚫 ABSOLUTELY FORBIDDEN - NO GRID LINES, NO SEPARATORS, NO GAPS 🚫🚫🚫
-**CRITICAL: DO NOT DRAW ANY LINES, BORDERS, DIVIDERS, OR SEPARATORS BETWEEN CELLS.**
-**FORBIDDEN ELEMENTS - ABSOLUTE PROHIBITION:**
-- ❌ NO vertical lines between columns (especially at x=370)
-- ❌ NO horizontal lines between rows (especially at y=320, 640, 960)
-- ❌ NO cross lines (十字線) or intersection lines
-- ❌ NO grid lines of any kind, thickness, or color
-- ❌ NO borders around cells or around the entire grid
-- ❌ NO gaps or spaces between cells
-- ❌ NO visible separators, dividers, or boundaries
-- ❌ NO dividing lines, even if they are subtle or faint
-- ❌ NO dark lines, light lines, or any colored lines between cells
-- ❌ NO shadows or outlines that create visual separation
-**The 8 cells must be SEAMLESSLY CONNECTED with ZERO visible separators.**
-**The entire image must appear as ONE CONTINUOUS SURFACE with 8 distinct sticker areas.**
-**Cells should touch each other DIRECTLY with NO lines, NO borders, NO gaps, NO dividers.**
-**Think of it as ONE single image divided into 8 areas by content only, NOT by lines.**
-**IMPORTANT: Even if you think a line would help organize the layout, DO NOT draw it. The cells must blend seamlessly.**
+🚫🚫🚫 FORBIDDEN ELEMENTS - NO VISIBLE GRID 🚫🚫🚫
+- ❌ NO black lines, gray lines, or any colored lines between stickers.
+- ❌ NO vertical divider at x=370.
+- ❌ NO horizontal dividers at y=320, 640, 960.
+- ❌ NO frames around the stickers.
+- ❌ NO "window pane" effects.
+- ❌ The background must be pure, uninterrupted white pixels between the character graphics.
 
-⚠️⚠️⚠️ CELL BOUNDARY REQUIREMENT - STRICT - MANDATORY ⚠️⚠️⚠️
-Each cell is EXACTLY 370 pixels wide × 320 pixels high.
-**ALL content in each cell MUST be contained WITHIN its 370×320 pixel boundary.**
-**NO content can extend beyond the cell boundaries.**
-**Each cell is like a separate 370×320 canvas - content must fit completely inside.**
+**Layout Guide (Mental Model only - DO NOT DRAW):**
+- Column 1: Left half (x=0-369)
+- Column 2: Right half (x=370-739)
+- Row 1: Top (y=0-319)
+- Row 2: Upper Middle (y=320-639)
+- Row 3: Lower Middle (y=640-959)
+- Row 4: Bottom (y=960-1279)
 
-Strict Grid Boundaries (pixel coordinates):
-- Column 1: x = 0 to 369 (exactly 370px wide)
-- Column 2: x = 370 to 739 (exactly 370px wide)
-- Row 1: y = 0 to 319 (exactly 320px high)
-- Row 2: y = 320 to 639 (exactly 320px high)
-- Row 3: y = 640 to 959 (exactly 320px high)
-- Row 4: y = 960 to 1279 (exactly 320px high)
+${stickersDescription}
 
-Cell Positions and Content:
-- Cell 1 (Row 1, Col 1): x=0-369, y=0-319 (370×320) - ${stickers[0]?.description || 'N/A'}, text: "${stickers[0]?.text || ''}"
-- Cell 2 (Row 1, Col 2): x=370-739, y=0-319 (370×320) - ${stickers[1]?.description || 'N/A'}, text: "${stickers[1]?.text || ''}"
-- Cell 3 (Row 2, Col 1): x=0-369, y=320-639 (370×320) - ${stickers[2]?.description || 'N/A'}, text: "${stickers[2]?.text || ''}"
-- Cell 4 (Row 2, Col 2): x=370-739, y=320-639 (370×320) - ${stickers[3]?.description || 'N/A'}, text: "${stickers[3]?.text || ''}"
-- Cell 5 (Row 3, Col 1): x=0-369, y=640-959 (370×320) - ${stickers[4]?.description || 'N/A'}, text: "${stickers[4]?.text || ''}"
-- Cell 6 (Row 3, Col 2): x=370-739, y=640-959 (370×320) - ${stickers[5]?.description || 'N/A'}, text: "${stickers[5]?.text || ''}"
-- Cell 7 (Row 4, Col 1): x=0-369, y=960-1279 (370×320) - ${stickers[6]?.description || 'N/A'}, text: "${stickers[6]?.text || ''}"
-- Cell 8 (Row 4, Col 2): x=370-739, y=960-1279 (370×320) - ${stickers[7]?.description || 'N/A'}, text: "${stickers[7]?.text || ''}"
-
-MANDATORY REQUIREMENTS FOR EACH CELL:
-1. **Content Boundary**: ALL visual content (character, text, background) MUST be within the cell's 370×320 pixel area
-2. **No Overflow**: NO part of the character, text, or any element can extend beyond the cell boundaries
-3. **Complete Containment**: Think of each cell as a separate 370×320 canvas - everything must fit inside
-4. **Character**: Must fit within the cell, scaled appropriately to fit in 370×320
-5. **Text**: Must be positioned within the cell boundaries, with clear background box
-6. **Background**: White background within each cell's 370×320 area
-7. **Text appears ONCE**: Each text must appear exactly once in its designated cell
-8. **Text visibility**: Text must have a clear, solid color background box (bright, contrasting colors)
-
-Layout Rules:
-- Each cell is completely independent
-- Content in one cell cannot overlap or extend into adjacent cells
-- Maintain character consistency across all 8 cells
-- Each cell should be a complete, self-contained sticker design
-- Safe, family-friendly content
-- **ABSOLUTELY NO grid lines, borders, dividers, or gaps between cells - seamless connection**
-- **Cells must touch each other directly with ZERO visible separators**
-- **NO cross lines (十字線), NO vertical lines, NO horizontal lines**
-- **The image should look like ONE continuous surface, NOT 8 separate boxes with lines**
+MANDATORY REQUIREMENTS:
+1. **Content Boundary**: Keep all graphics well within the virtual cell boundaries (370x320) to avoid cropping.
+2. **Seamless Background**: The white background must flow continuously across the entire 740x1280 image.
+3. **No Separators**: If you feel the urge to draw a line to separate stickers, STOP. Leave it empty white space.
 
 VERIFICATION CHECKLIST:
-✓ Image is exactly 740×1280 pixels
-✓ Each cell is exactly 370×320 pixels
-✓ All content in Cell 1 is within x=0-369, y=0-319
-✓ All content in Cell 2 is within x=370-739, y=0-319
-✓ All content in Cell 3 is within x=0-369, y=320-639
-✓ All content in Cell 4 is within x=370-739, y=320-639
-✓ All content in Cell 5 is within x=0-369, y=640-959
-✓ All content in Cell 6 is within x=370-739, y=640-959
-✓ All content in Cell 7 is within x=0-369, y=960-1279
-✓ All content in Cell 8 is within x=370-739, y=960-1279
-✓ No content extends beyond cell boundaries
-✓ **NO vertical lines between columns (x=370)**
-✓ **NO horizontal lines between rows (y=320, 640, 960)**
-✓ **NO cross lines (十字線) anywhere in the image**
-✓ **NO grid lines, borders, or dividers of any kind**
-✓ **Cells are seamlessly connected with ZERO visible separators**
+✓ Image size 740x1280
+✓ 8 distinct stickers
+✓ **ZERO VISIBLE DIVIDING LINES**
+✓ **Continuous white background**
+✓ Characters centered in their virtual cells
 
 FINAL INSTRUCTION - READ CAREFULLY:
-Generate the complete 8-grid image with STRICT adherence to cell boundaries. Each cell must be a perfect 370×320 pixel box with all content contained within. 
-
-🚫🚫🚫 FINAL REMINDER - ABSOLUTELY NO GRID LINES 🚫🚫🚫
-**MOST IMPORTANTLY: The image must appear as ONE CONTINUOUS SURFACE with NO lines, NO borders, NO gaps, and NO separators between the 8 cells. The cells should blend seamlessly together.**
-
-**Before finalizing your image:**
-1. Check x=370 (vertical line position) - there should be NO line there
-2. Check y=320, 640, 960 (horizontal line positions) - there should be NO lines there
-3. The entire image should look like ONE seamless surface, NOT 8 separate boxes
-4. If you see any lines between cells in your image, REMOVE them completely
-
-**The 8 cells must touch each other directly with ZERO visible separators. Think of it as painting on ONE canvas, not drawing 8 separate boxes.**`
+Generate the complete 8-sticker sheet with STRICT adherence to the "Invisible Boundaries" rule.
+Each sticker occupies its own virtual 370x320 space, but there are NO VISIBLE LINES separating them.
+**The final image must be clean, white, and continuous.**`
 
   try {
     if (!characterImageDataUrl) {
