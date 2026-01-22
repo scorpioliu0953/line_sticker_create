@@ -31,6 +31,7 @@ function App() {
   const [descriptions, setDescriptions] = useState([])
   const [generatingDescriptions, setGeneratingDescriptions] = useState(false)
   const [excludedTexts, setExcludedTexts] = useState('') // 排除的文字（每行一個）
+  const [characterStance, setCharacterStance] = useState('') // 角色立場描述（可選）
   
   // 步驟 6-8: 8宮格生成、去背、裁切
   const [gridImages, setGridImages] = useState([]) // 8宮格圖片陣列
@@ -164,7 +165,14 @@ function App() {
         .map(line => line.trim())
         .filter(line => line.length > 0)
       
-      const items = await generateImageDescriptionsWithText(apiKey, theme, finalTextStyle, count, excludedTextList)
+      const items = await generateImageDescriptionsWithText(
+        apiKey,
+        theme,
+        finalTextStyle,
+        count,
+        excludedTextList,
+        characterStance.trim()
+      )
       setDescriptions(items)
       setProgress('文字描述生成完成，可以編輯後繼續')
     } catch (error) {
@@ -606,6 +614,33 @@ function App() {
           <div className="step-section">
             <h2>步驟 6: 生成文字描述（可編輯）</h2>
             
+            {/* 角色立場描述 */}
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label htmlFor="characterStance" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                角色立場描述（選填）：
+              </label>
+              <textarea
+                id="characterStance"
+                value={characterStance}
+                onChange={(e) => setCharacterStance(e.target.value)}
+                placeholder="例如：攀岩時非常厭世、語氣消極、愛吐槽"
+                className="form-input"
+                style={{
+                  width: '100%',
+                  minHeight: '80px',
+                  padding: '10px',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  resize: 'vertical'
+                }}
+              />
+              <p style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
+                💡 提示：描述角色立場或語氣（例如厭世、毒舌、溫暖鼓勵），會影響文字生成風格與用詞方向。
+              </p>
+            </div>
+
             {/* 排除文字輸入框 */}
             <div className="form-group" style={{ marginBottom: '20px' }}>
               <label htmlFor="excludedTexts" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>

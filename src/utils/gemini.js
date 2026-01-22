@@ -111,9 +111,17 @@ export async function generateTextStyle(apiKey, theme, characterDescription) {
  * @param {string} textStyle - 文字風格描述
  * @param {number} count - 需要生成的圖片數量
  * @param {Array<string>} excludedTexts - 要排除的文字列表（可選）
+ * @param {string} characterStance - 角色立場描述（可選）
  * @returns {Promise<Array<{description: string, text: string}>>} 圖片描述和文字陣列
  */
-export async function generateImageDescriptionsWithText(apiKey, theme, textStyle, count, excludedTexts = []) {
+export async function generateImageDescriptionsWithText(
+  apiKey,
+  theme,
+  textStyle,
+  count,
+  excludedTexts = [],
+  characterStance = ''
+) {
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' })
@@ -134,10 +142,15 @@ ${excludedTexts.map(text => `- "${text}"`).join('\n')}
 `
     }
 
+    const stancePrompt = characterStance && characterStance.trim()
+      ? `\n角色立場/語氣描述：${characterStance.trim()}\n請依照這個角色立場來設計文字語氣與用詞方向。`
+      : ''
+
     const prompt = `你是一個專業的 LINE 貼圖設計師。根據以下主題和文字風格，生成 ${count} 個不同的貼圖圖片描述和要添加的文字。
 
 主題說明：${theme}
 文字風格：${textStyle}
+${stancePrompt}
 ${excludedTextsPrompt}
 嚴格要求：
 1. 每個描述應該對應一張獨特的貼圖圖片
