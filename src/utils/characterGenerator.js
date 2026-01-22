@@ -1,5 +1,14 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
+const IMAGE_VISIBILITY_RULES = `
+Visibility & Background-Removal Rules:
+- Keep strong contrast between the subject/text box and the background.
+- Avoid background colors that are similar to any text outline or border.
+- Do NOT use background color that matches text box fill or its outline.
+- Ensure clear separation at all edges of the character and the text box.
+- The design must remain readable on both light and dark preview backgrounds.
+`
+
 /**
  * 生成角色圖片（白色背景）
  * @param {string} apiKey - Gemini API Key
@@ -25,7 +34,8 @@ Design Requirements:
 - **Consistency Base**: This image will be used as a strict reference for generating multiple sticker variations, so make the features clear and recognizable.
 - Cute and simple character design (adorable, friendly style).
 - High quality digital illustration.
-- Safe, appropriate, and family-friendly content.`
+- Safe, appropriate, and family-friendly content.
+${IMAGE_VISIBILITY_RULES}`
 
   // 如果有上傳的參考圖片，在 prompt 中提及
   if (uploadedImage) {
@@ -218,6 +228,7 @@ Technical Requirements:
 2. Maintain visual consistency with the reference character
 3. **DO NOT add any text** - this is a main image without text or words
 4. Clean white background (solid, high-contrast, distinct from character)
+${IMAGE_VISIBILITY_RULES}
 5. **EXACT dimensions: 240px width × 240px height** (must be exactly 240×240 pixels)
 6. Target Aspect Ratio: 1:1 (Square) - COMPOSITION MUST FIT SQUARE RATIO
 7. Cute, expressive, and friendly sticker illustration style
@@ -444,6 +455,7 @@ Technical Requirements:
 2. Maintain visual consistency with the reference character
 3. **DO NOT add any text** - this is a tab image without text or words
 4. Clean and simple background (solid, high-contrast, distinct from character)
+${IMAGE_VISIBILITY_RULES}
 5. **EXACT dimensions: 96px width × 74px height** (must be exactly 96×74 pixels)
 6. Target Aspect Ratio: 4:3 (Landscape) - COMPOSITION MUST FIT LANDSCAPE RATIO
 7. Character should be the main and central element, clearly visible
@@ -681,6 +693,7 @@ Imagine 8 stickers placed on a white sheet of paper. NO lines between them.
 
 Character Reference: **STRICTLY FOLLOW the provided character image.** The stickers MUST look exactly like the same character in different poses. Maintain the same facial features, clothing, colors, and proportions.
 Background Requirement: **High contrast solid white background** in each area to facilitate automatic background removal.
+${IMAGE_VISIBILITY_RULES}
 Target Aspect Ratio: 9:16 (Vertical Portrait)
 Text Style Guidelines: ${safeTextStyle}
 
@@ -1008,6 +1021,7 @@ Technical Requirements:
 4. Add a solid, brightly colored background box behind the text "${cleanText}" for visibility
 5. Use bright, contrasting colors (white, yellow, light blue, pink) for the text box
 6. White background (solid white color, not transparent)
+${IMAGE_VISIBILITY_RULES}
 7. Exact image dimensions: ${width}px width × ${height}px height
 8. Cute, expressive, and friendly illustration style suitable for messaging stickers
 9. High quality, professional digital illustration
