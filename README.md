@@ -8,6 +8,12 @@
 
 直接在瀏覽器中使用，無需安裝任何軟體。
 
+## 📺 教學影片
+
+[![LINE 貼圖製作教學](https://img.youtube.com/vi/nxlflN0bw8s/0.jpg)](https://www.youtube.com/watch?v=nxlflN0bw8s)
+
+點擊上方圖片觀看教學影片，或直接前往：[YouTube 影片連結](https://youtu.be/nxlflN0bw8s)
+
 ## 功能特色
 
 - 🔑 **API Key 管理**：安全輸入 Gemini API Key
